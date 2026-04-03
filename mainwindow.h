@@ -7,8 +7,9 @@
 #include "dslk_don.h"
 #include "dslk_vong.h"
 #include "mang.h"
-
+#include <QTimer>
 #include "dslk_kep.h"
+#include <QTableWidget>
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -72,8 +73,6 @@ private slots:
 
     void on_clearBtn_clicked();
 
-    void on_pushButton_2_clicked();
-
 private:
     template<typename ListType>
     void handleTimKiem(ListType &list);
@@ -85,9 +84,14 @@ private:
     void handleXoaSv(QString &mssv);
     void handleTimKiemKep();
     void handleHeapSort();
+    int getSoLuong(QString &lop);
 public:
     void updateTable();
+    void loadKetQuaTimKiem(QList<int> indexes, QTableWidget* table = nullptr);
+private:
+    int hue = 0;
 public:
+
     Ui::MainWindow *ui;
     dslk_don ds_don;
     // dslk_kep ds_kep;
@@ -96,5 +100,7 @@ public:
     mang ds_mang;
     QSet<QString> mssvSet;
     int searchMode = -1;
+
+
 };
 #endif // MAINWINDOW_H

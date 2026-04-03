@@ -13,7 +13,7 @@ addUi::addUi(QSet<QString> &mssvSet, MainWindow *parent)
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->doubleSpinBoxDiem->setMinimum(0);
     ui->doubleSpinBoxDiem->setMaximum(10);
-    this->setWindowIcon(QIcon("E:\\learnLongLife\\c++\\quan_li_sinh_vien\\icons\\add.png"));
+    this->setWindowIcon(QIcon(":\\images\\icons\\icons\\add.png"));
 
     connect(ui->tableWidget, &QTableWidget::customContextMenuRequested,
             this, &addUi::showTableContextMenu);
@@ -67,7 +67,7 @@ bool addUi::validateThemSv(SinhVien &sv,QSet<QString> &mssvSet){
         errors << QString("Thiếu thông tin bắt buộc!");
     }
 
-    if (mssvSet.contains(mssv)) {
+    if (mssvSet.contains(mssv.toUpper())) {
         errors << QString("Trùng mã sinh viên");
     }
     if (!errors.isEmpty()) {
@@ -84,6 +84,8 @@ bool addUi::validateThemSv(SinhVien &sv,QSet<QString> &mssvSet){
         QMessageBox::information(this, "Thành công", "Thêm sinh viên thành công!");        
         sv.ho= vld.deleteMiddleSpace(ho);
         sv.ten = vld.deleteMiddleSpace(ten);
+        sv.ho = vld.capitalizeWords(ho);
+        sv.ten = vld.capitalizeWords(ten);
         sv.lop = sv.lop.toUpper();
         sv.mssv = sv.mssv.toUpper();
         return true;

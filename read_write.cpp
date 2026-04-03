@@ -10,6 +10,7 @@
 #include <QTableWidget>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <validate.h>
 // #include "dslk_vong.h"
 // #include "dslk_kep.h"
 using namespace std;
@@ -28,11 +29,11 @@ SinhVien process_substring(const QString& s) {
     QString diemStr = parts.value(4).trimmed();
 
     diemStr.replace(",", ".");  // đổi dấu phẩy thành chấm (nếu có)
-
-    x.setMssv(msv);
-    x.setHo(ho);
-    x.setTen(ten);
-    x.setLop(lop);
+    validate vld;
+    x.setMssv(msv.toUpper());
+    x.setHo(vld.capitalizeWords(vld.deleteMiddleSpace(ho)));
+    x.setTen(vld.capitalizeWords(vld.deleteMiddleSpace(ten)));
+    x.setLop(lop.toUpper());
     bool ok;
     qreal diem = diemStr.toDouble(&ok);
     diem = ok ? diem : -1.0;
@@ -86,7 +87,12 @@ QStringList loadDuLieu(const QString& filePath, ListType& danhSach, QSet<QString
 
         SinhVien sv = process_substring(line);
         bool hasError = false;
-
+        QStringList parts = line.split(';');
+        if(parts.size() != 5){
+            errors << QString("Dòng %1: Lỗi số lượng phần tử không hợp lệ!").arg(lineNumber);
+            hasError = true;
+            continue;
+        }
         if (!check_msv(sv.getMssv())) {
             errors << QString("Dòng %1: Mã sinh viên chứa ký tự trắng hoặc không hợp lệ!").arg(lineNumber);
             hasError = true;

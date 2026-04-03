@@ -53,16 +53,15 @@ dslk_vong::node* dslk_vong::sua_sv(QString &mssv, SinhVien &sv){
     if (tim_vet_can(mssv) == nullptr){
         return {};
     }
-    SinhVien tmp;
 
     p = last->next;
     while (p->sv.mssv != mssv){
         p = p->next;
     }
-    p->sv.ho = tmp.ho;
-    p->sv.ten = tmp.ten;
-    p->sv.lop = tmp.lop;
-    p->sv.diem = tmp.diem;
+    p->sv.ho = sv.ho;
+    p->sv.ten = sv.ten;
+    p->sv.lop = sv.lop;
+    p->sv.diem = sv.diem;
     return p;
 }
 

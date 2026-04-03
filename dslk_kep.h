@@ -12,8 +12,9 @@ public:
         node* prev;
         node* next;
     };
-    PROPERTY(node*,first,First);
-    node *last;
+    PROPERTY(node* ,first,First);
+    PROPERTY(node*,last,Last);
+
     int length;
 public:
     dslk_kep();

@@ -16,7 +16,7 @@ updateui::updateui(SinhVien &sv, QSet<QString> &mssvSet, MainWindow *parent)
     ui->doubleSpinBoxDiem->setValue(sv.diem);
     ui->doubleSpinBoxDiem->setMinimum(0);
     ui->doubleSpinBoxDiem->setMaximum(10);
-    this->setWindowIcon(QIcon("E:\\learnLongLife\\c++\\quan_li_sinh_vien\\icons\\update.png"));
+    this->setWindowIcon(QIcon(":\\images\\icons\\update.png"));
 
 }
 
@@ -40,6 +40,7 @@ void updateui::on_pushButtonSave_clicked()
     QString lop = ui->lineEditLop->text().trimmed();
     qreal diem = ui->doubleSpinBoxDiem->value();
     SinhVien newSv = SinhVien(mssv, ho, ten, lop, diem);
+    qDebug() << "Lớp" << lop;
     QStringList errors;
 
     validate vld;
@@ -77,12 +78,12 @@ void updateui::on_pushButtonSave_clicked()
         QMessageBox::information(this, "Thành công", "Sửa sinh viên thành công!");
 
     }
-
-    newSv.ho= vld.deleteMiddleSpace(ho);
-    newSv.ten = vld.deleteMiddleSpace(ten);
-    newSv.lop = newSv.lop.toUpper();
-    newSv.mssv = newSv.mssv.toUpper();
-
+    qDebug() << "Lớp 2 : " << lop;
+    newSv.ten = vld.capitalizeWords(vld.deleteMiddleSpace(ten));
+    newSv.ho = vld.capitalizeWords(vld.deleteMiddleSpace(ho));
+    newSv.lop = lop.toUpper();
+    newSv.mssv = mssv.toUpper();
+    newSv.in_thong_tin();
     switch(mainWin->selectedIndex){
     case 0:
         break;

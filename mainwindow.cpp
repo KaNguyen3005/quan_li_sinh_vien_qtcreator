@@ -10,6 +10,11 @@
 #include "updateui.h"
 #include <QAbstractItemView>
 #include <QTableWidgetItem>
+#include <QTimer>
+#include <QRandomGenerator>
+#include <cmath>
+#include <QGraphicsDropShadowEffect>
+//"E:\learnLongLife\c++\quan_li_sinh_vien\icons\PTIT.png"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -18,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
     sortIndex = 0;
     path = "";
     ui->setupUi(this);
-
+    isImport = false;
     // Set độ rộng các cột (theo chỉ số cột)
     ui->tableWidget->setColumnWidth(0, 120); // MSSV
     ui->tableWidget->setColumnWidth(1, 150); // Họ
@@ -27,16 +32,54 @@ MainWindow::MainWindow(QWidget *parent)
     ui->tableWidget->setColumnWidth(4, 80);  // Điểm
     ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tableWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-    this->setWindowIcon(QIcon("E:\\learnLongLife\\c++\\quan_li_sinh_vien\\icons\\app.png"));
+    this->setWindowIcon(QIcon(":\\images\\icons\\app.png"));
     connect(ui->tableWidget, &QTableWidget::customContextMenuRequested,
             this, &MainWindow::showTableContextMenu);
-}
+    QPalette p = ui->lcdSoLuongSinhVien->palette();
+    p.setColor(QPalette::WindowText, QColor("#00FF66"));  // Xanh lá sáng hơn
+    ui->lcdSoLuongSinhVien->setAutoFillBackground(true);
 
+    ui->lcdSoLuongSinhVien->setPalette(p);
+    QGraphicsScene *scene = new QGraphicsScene(this);
+    QPixmap pix(":\\images\\icons\\PTIT.png");
+    scene->addPixmap(pix);
+    ui->graphicsView->setScene(scene);
+    ui->graphicsView->fitInView(scene->itemsBoundingRect(), Qt::KeepAspectRatio);
+    ui->graphicsView->scale(3.0, 3.0);  // Phóng to 2 lần
+    ui->statusBtn->setEnabled(false);
+    ui->statusBtn->setText("✖ Not import");
+    ui->statusBtn->setStyleSheet("QPushButton { color: white; background-color: red; border-radius: 8px; padding: 6px; font: bold 14px; }");
+    ui->tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->greeting->setAlignment(Qt::AlignCenter);
+    ui->greeting->setStyleSheet(R"(
+    QLabel {
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        background-color: qlineargradient(
+            spread:pad, x1:0, y1:0, x2:1, y2:0,
+            stop:0 #3f87a6, stop:1 #ebf8e1
+        );
+        border: 3px solid #4CAF50;
+        border-radius: 15px;
+        padding: 10px;
+    }
+)");
+
+    QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
+    shadow->setBlurRadius(20);
+    shadow->setOffset(4, 4);
+    shadow->setColor(QColor(0, 0, 0, 160));  // bóng đen, độ mờ nhẹ
+
+    ui->greeting->setGraphicsEffect(shadow);
+    QRegularExpression regex("[\\p{L}0-9\\-._ ]+");
+    QValidator *validator = new QRegularExpressionValidator(regex, this);
+    ui->lineEdit->setValidator(validator);
+}
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-
 
 bool showYesNoMessageBox(QWidget* parent, const QString& title, const QString& message) {
     QMessageBox::StandardButton reply;
@@ -237,15 +280,21 @@ void MainWindow::on_downloadBtn_clicked()
         isImport = true;
 
     }
-    else return;
 
+    else return;
     QSet<QString> set = getLops(ui->tableWidget);
-    for(auto x : set){
+    QStringList sortedList = QStringList(set.begin(), set.end());
+    sortedList.sort(Qt::CaseInsensitive);  // không phân biệt hoa thường (nếu cần)
+
+    for (const QString &x : sortedList) {
         ui->comboBoxLopTb->addItem(x);
     }
+    ui->lcdSoLuongSinhVien->display(ui->tableWidget->rowCount());
     ui->clearBtn->setEnabled(true);
     ui->downloadBtn->setEnabled(false);
     ui->methodBox->setEnabled(false);
+    ui->statusBtn->setText("✔ Imported");
+    ui->statusBtn->setStyleSheet("QPushButton { color: white; background-color: green; border-radius: 8px; padding: 6px; font: bold 14px; }");
 
 }
 
@@ -695,6 +744,19 @@ void MainWindow::on_sortBtn_clicked()
 }
 
 
+int MainWindow::getSoLuong(QString &lop){
+    int rows = ui->tableWidget->rowCount();
+    int cnt = 0;
+    for(int i = 0; i < rows; i++){
+        QTableWidgetItem* item = ui->tableWidget->item(i, 3);
+        QString temp = item->text();
+        if(temp == lop){
+            cnt++;
+        }
+    }
+    return cnt;
+}
+
 void MainWindow::on_caculateBtn_clicked()
 {
     if(!isImport || !selectedIndex) {
@@ -730,6 +792,8 @@ void MainWindow::on_caculateBtn_clicked()
     default:
         break;
     }
+    int soLuong = getSoLuong(selectedLop);
+    ui->SoLuongView->setText(QString::number(soLuong));
 }
 
 
@@ -743,8 +807,9 @@ void MainWindow::on_comboBoxSort_currentIndexChanged(int index)
 
 void MainWindow::on_listMinBtn_clicked()
 {
+    qDebug() << isImport;
     if(!isImport){
-        QMessageBox::critical(this, "Lỗi", "Vui lòng chọn chức năng này");
+        QMessageBox::critical(this, "Lỗi", "Vui lòng chọn import trước khi chọn chức năng này");
         return;
     }
     switch (selectedIndex){
@@ -791,7 +856,7 @@ void MainWindow::on_listMinBtn_clicked()
 void MainWindow::on_listMaxBtn_clicked()
 {
     if(!isImport){
-        QMessageBox::critical(this, "Lỗi", "Vui lòng chọn chức năng này");
+        QMessageBox::critical(this, "Lỗi", "Vui lòng chọn import trước khi chọn chức năng này");
         return;
     }
 
@@ -969,6 +1034,9 @@ void MainWindow::handleTimKiem(ListType &list) {
     }
     case 2: {
         QString text = ui->lineEdit->text();
+        bool ok;
+        text.toFloat(&ok);
+        if(!ok) break;
         double input = text.toDouble();
         QElapsedTimer timer;
         timer.start();  // Bắt đầu đếm thời gian
@@ -1020,7 +1088,18 @@ void MainWindow::handleTimKiem(ListType &list) {
             resertTable(i, j, ui->tableWidget);
         }
     }
-
+    if(index == 1){
+        index = 2;
+    }
+    else if(index == 2){
+        index = 4;
+    }
+    else if(index == 3){
+        index = 1;
+    }
+    else if(index == 4){
+        index = 3;
+    }
     for(auto x : indexes){
         int columnCount = ui->tableWidget->columnCount();
         if(checkDaoNguoc){
@@ -1029,11 +1108,14 @@ void MainWindow::handleTimKiem(ListType &list) {
             QString temp = item_ho->text() + " " + item_ten->text();
             dao_nguoc(x, 5, temp, ui->tableWidget);
         }
-        for(int i = 0; i < columnCount; i++){
-            to_mau(x, i, ui->tableWidget);
 
-        }
+        to_mau(x, index, ui->tableWidget);
+
     }
+    loadKetQuaTimKiem(indexes, ui->tableWidget);
+    QString quantity = QString::number(indexes.length());
+    ui->quantitySearchView_2->setText(quantity);
+
 }
 
 void MainWindow::handleTimKiemArr(mang &ds) {
@@ -1042,69 +1124,86 @@ void MainWindow::handleTimKiemArr(mang &ds) {
     QElapsedTimer timer;
     QList<int> indexes;
     bool checkDaoNguoc = ui->radioButtonTenDaoNguoYes->isChecked();
-
+    bool isNhiPhan = false;
     switch(index){
     case 0:{
         timer.start();  // Bắt đầu đếm thời gian
         if(searchMode == 0){
             indexes = ds.tim_kiem_nhi_phan_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
+            isNhiPhan = true;
         }
         else indexes = ds.tim_vet_can_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
-
         qint64 nanos = timer.nsecsElapsed();  // Thời gian đã trôi qua (ms)
         QString result;
         result = QString::number(nanos / 1'000'000.0, 'f', 3) + " ms";
-        ui->timeSearchView->setText(result);
+        ui->timeSearchView->setText(result + (isNhiPhan ? " bằng tìm kiếm nhị phân" : " bằng tìm kiếm vét cạn"));
         break;
     }
 
     case 1:{
         timer.start();  // Bắt đầu đếm thời gian
         if(searchMode == 1){
+
             indexes = ds.tim_kiem_nhi_phan_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
+            isNhiPhan = true;
+
         }
-        else indexes = ds.tim_vet_can_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
+        else {
+
+            indexes = ds.tim_vet_can_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
+        }
         qint64 nanos = timer.nsecsElapsed();  // Thời gian đã trôi qua (ms)
         QString result;
         result = QString::number(nanos / 1'000'000.0, 'f', 3) + " ms";
-        ui->timeSearchView->setText(result);
+        ui->timeSearchView->setText(result + (isNhiPhan ? " bằng tìm kiếm nhị phân" : " bằng tìm kiếm vét cạn"));
         break;
     }
     case 2: {
         timer.start();  // Bắt đầu đếm thời gian
         if(searchMode == 2){
+            isNhiPhan = true;
+
             indexes = ds.tim_kiem_nhi_phan_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
         }
-        else indexes = ds.tim_vet_can_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
+        else {
+            indexes = ds.tim_vet_can_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
+        }
         qint64 nanos = timer.nsecsElapsed();  // Thời gian đã trôi qua (ms)
         QString result;
         result = QString::number(nanos / 1'000'000.0, 'f', 3) + " ms";
-        ui->timeSearchView->setText(result);
+        ui->timeSearchView->setText(result + (isNhiPhan ? " bằng tìm kiếm nhị phân" : " bằng tìm kiếm vét cạn"));
         break;
     }
     case 3:{
         timer.start();  // Bắt đầu đếm thời gian
         if(searchMode == 3){
+            isNhiPhan = true;
+
             indexes = ds.tim_kiem_nhi_phan_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
         }
-        else indexes = ds.tim_vet_can_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
+        else{
+
+            indexes = ds.tim_vet_can_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
+        }
         qint64 nanos = timer.nsecsElapsed();  // Thời gian đã trôi qua (ms)
         QString result;
         result = QString::number(nanos / 1'000'000.0, 'f', 3) + " ms";
-        ui->timeSearchView->setText(result);
+        ui->timeSearchView->setText(result + (isNhiPhan ? " bằng tìm kiếm nhị phân" : " bằng tìm kiếm vét cạn"));
         break;
     }
     case 4:
     {
         timer.start();  // Bắt đầu đếm thời gian
         if(searchMode == 4){
+            isNhiPhan = true;
+
             indexes = ds.tim_kiem_nhi_phan_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
         }
         else indexes = ds.tim_vet_can_ds_sv(ui->comboBoxSearch->currentIndex() + 1, input);
         qint64 nanos = timer.nsecsElapsed();  // Thời gian đã trôi qua (ms)
         QString result;
         result = QString::number(nanos / 1'000'000.0, 'f', 3) + " ms";
-        ui->timeSearchView->setText(result);
+        ui->timeSearchView->setText(result + (isNhiPhan ? " bằng tìm kiếm nhị phân" : " bằng tìm kiếm vét cạn"));
         break;
     }
     default:
@@ -1129,6 +1228,18 @@ void MainWindow::handleTimKiemArr(mang &ds) {
             resertTable(i, j, ui->tableWidget);
         }
     }
+    if(index == 1){
+        index = 2;
+    }
+    else if(index == 2){
+        index = 4;
+    }
+    else if(index == 3){
+        index = 1;
+    }
+    else if(index == 4){
+        index = 3;
+    }
     for(auto x : indexes){
         int columnCount = ui->tableWidget->columnCount();
         if(checkDaoNguoc){
@@ -1137,10 +1248,12 @@ void MainWindow::handleTimKiemArr(mang &ds) {
             QString temp = item_ho->text() + " " + item_ten->text();
             dao_nguoc(x, 5, temp, ui->tableWidget);
         }
-        for(int i = 0; i < columnCount; i++){
-            to_mau(x, i, ui->tableWidget);
-        }
+
+        to_mau(x, index, ui->tableWidget);
     }
+    loadKetQuaTimKiem(indexes, ui->tableWidget);
+    QString quantity = QString::number(indexes.length());
+    ui->quantitySearchView_2->setText(quantity);
 }
 
 void MainWindow::handleTimKiemVong() {
@@ -1176,6 +1289,9 @@ void MainWindow::handleTimKiemVong() {
     }
     case 2: {
         QString text = ui->lineEdit->text();
+        bool ok;
+        text.toFloat(&ok);
+        if(!ok) break;
         double input = text.toDouble();
         QElapsedTimer timer;
         timer.start();  // Bắt đầu đếm thời gian
@@ -1227,6 +1343,18 @@ void MainWindow::handleTimKiemVong() {
             resertTable(i, j, ui->tableWidget);
         }
     }
+    if(index == 1){
+        index = 2;
+    }
+    else if(index == 2){
+        index = 4;
+    }
+    else if(index == 3){
+        index = 1;
+    }
+    else if(index == 4){
+        index = 3;
+    }
     for(auto x : indexes){
         int columnCount = ui->tableWidget->columnCount();
         if(checkDaoNguoc){
@@ -1235,12 +1363,22 @@ void MainWindow::handleTimKiemVong() {
             QString temp = item_ho->text() + " " + item_ten->text();
             dao_nguoc(x, 5, temp, ui->tableWidget);
         }
-        for(int i = 0; i < columnCount; i++){
-            to_mau(x, i, ui->tableWidget);
+
+        to_mau(x, index, ui->tableWidget);
+    }
+    loadKetQuaTimKiem(indexes, ui->tableWidget);
+    QString quantity = QString::number(indexes.length());
+    ui->quantitySearchView_2->setText(quantity);
+}
+
+void MainWindow::loadKetQuaTimKiem(QList<int> indexes, QTableWidget* table){
+    int rows = table->rowCount();
+    for(int i = rows - 1; i >= 0; i--){
+        if(!indexes.contains(i)){
+            table->removeRow(i);
         }
     }
 }
-
 
 void MainWindow::handleTimKiemKep() {
     int index = ui->comboBoxSearch->currentIndex();
@@ -1248,7 +1386,7 @@ void MainWindow::handleTimKiemKep() {
     QElapsedTimer timer;
     QList<int> indexes;
     bool checkDaoNguoc = ui->radioButtonTenDaoNguoYes->isChecked();
-
+    bool isNhiPhan = false;
     switch(index){
     case 0:{
         QString input = ui->lineEdit->text();
@@ -1259,6 +1397,7 @@ void MainWindow::handleTimKiemKep() {
 
         if(searchMode == 0){
             indexes = ds_kep.binary_search(&dslk_kep::search_theo_ma, des);
+            isNhiPhan = true;
         }
         else {
             Helper<dslk_kep::node, dslk_kep> helper;
@@ -1267,7 +1406,7 @@ void MainWindow::handleTimKiemKep() {
         qint64 nanos = timer.nsecsElapsed();  // Thời gian đã trôi qua (ms)
         QString result;
         result = QString::number(nanos / 1'000'000.0, 'f', 3) + " ms";
-        ui->timeSearchView->setText(result);
+        ui->timeSearchView->setText(result + (isNhiPhan ? " bằng tìm kiếm nhị phân" : " bằng tìm kiếm vét cạn"));
         break;
     }
 
@@ -1281,6 +1420,8 @@ void MainWindow::handleTimKiemKep() {
 
         if(searchMode == 1){
             indexes = ds_kep.binary_search(&dslk_kep::search_theo_ten, des);
+            isNhiPhan = true;
+
         }
         else {
             Helper<dslk_kep::node, dslk_kep> helper;
@@ -1289,11 +1430,14 @@ void MainWindow::handleTimKiemKep() {
         qint64 nanos = timer.nsecsElapsed();  // Thời gian đã trôi qua (ms)
         QString result;
         result = QString::number(nanos / 1'000'000.0, 'f', 3) + " ms";
-        ui->timeSearchView->setText(result);
+        ui->timeSearchView->setText(result + (isNhiPhan ? " bằng tìm kiếm nhị phân" : " bằng tìm kiếm vét cạn"));
         break;
     }
     case 2: {
         QString text = ui->lineEdit->text();
+        bool ok;
+        text.toFloat(&ok);
+        if(!ok) break;
         double input = text.toDouble();
         timer.start();  // Bắt đầu đếm thời gian
         SinhVien sv = SinhVien();
@@ -1303,6 +1447,8 @@ void MainWindow::handleTimKiemKep() {
         timer.start();
         if(searchMode == 2){
             indexes = ds_kep.binary_search(&dslk_kep::search_theo_diem, des);
+            isNhiPhan = true;
+
         }
         else {
             Helper<dslk_kep::node, dslk_kep> helper;
@@ -1311,7 +1457,7 @@ void MainWindow::handleTimKiemKep() {
         qint64 nanos = timer.nsecsElapsed();  // Thời gian đã trôi qua (ms)
         QString result;
         result = QString::number(nanos / 1'000'000.0, 'f', 3) + " ms";
-        ui->timeSearchView->setText(result);
+        ui->timeSearchView->setText(result + (isNhiPhan ? " bằng tìm kiếm nhị phân" : " bằng tìm kiếm vét cạn"));
         break;
     }
     case 3:{
@@ -1364,6 +1510,18 @@ void MainWindow::handleTimKiemKep() {
             resertTable(i, j, ui->tableWidget);
         }
     }
+    if(index == 1){
+        index = 2;
+    }
+    else if(index == 2){
+        index = 4;
+    }
+    else if(index == 3){
+        index = 1;
+    }
+    else if(index == 4){
+        index = 3;
+    }
     for(auto x : indexes){
         int columnCount = ui->tableWidget->columnCount();
         if(checkDaoNguoc){
@@ -1372,10 +1530,12 @@ void MainWindow::handleTimKiemKep() {
             QString temp = item_ho->text() + " " + item_ten->text();
             dao_nguoc(x, 5, temp, ui->tableWidget);
         }
-        for(int i = 0; i < columnCount; i++){
-            to_mau(x, i, ui->tableWidget);
-        }
+
+        to_mau(x, index, ui->tableWidget);
     }
+    loadKetQuaTimKiem(indexes, ui->tableWidget);
+    QString quantity = QString::number(indexes.length());
+    ui->quantitySearchView_2->setText(quantity);
 }
 
 
@@ -1385,14 +1545,22 @@ void MainWindow::on_searchBtn_clicked()
         QMessageBox::critical(this, "Lỗi", "Vui lòng import trước khi tìm kiếm");
         return;
     }
+    if(ui->lineEdit->text() == ""){
+        QMessageBox::critical(this, "Lỗi", "Vui lòng nhập thông tin tìm kiếm");
+        return;
+
+    }
     switch(selectedIndex){
         case 0:
         break;
-        case 1:
+        case 1:{
             handleTimKiemArr(ds_mang);
             break;
+        }
         case 2: {
             handleTimKiem(ds_don);
+            ui->timeSearchView->setText(ui->timeSearchView->text() + " bằng tìm kiếm vét cạn");
+
             break;
         }
         case 3: {
@@ -1401,6 +1569,7 @@ void MainWindow::on_searchBtn_clicked()
         }
         case 4:{
             handleTimKiemVong();
+            ui->timeSearchView->setText(ui->timeSearchView->text() + " bằng tìm kiếm vét cạn" );
             break;
         }
         default:
@@ -1439,6 +1608,7 @@ void MainWindow::on_huySearchBtn_clicked()
     default:
         break;
     }
+    ui->quantitySearchView_2->setText(0);
     ui->huySearchBtn->setEnabled(false);
     ui->searchBtn->setEnabled(true);
     ui->comboBoxSearch->setEnabled(true);
@@ -1474,9 +1644,14 @@ void MainWindow::updateTable(){
     default:
         break;
     }
+    searchMode = -1;
     ui->comboBoxLopTb->clear();
+    ui->lcdSoLuongSinhVien->display(ui->tableWidget->rowCount());
     QSet<QString> set = getLops(ui->tableWidget);
-    for(auto x : set){
+    QStringList sortedList = QStringList(set.begin(), set.end());
+    sortedList.sort(Qt::CaseInsensitive);  // không phân biệt hoa thường (nếu cần)
+
+    for (const QString &x : sortedList) {
         ui->comboBoxLopTb->addItem(x);
     }
 }
@@ -1501,7 +1676,6 @@ void MainWindow::handleXoaSv(QString &mssv){
         break;
     }
     mssvSet.remove(mssv);
-
 }
 
 
@@ -1541,9 +1715,13 @@ void MainWindow::showTableContextMenu(const QPoint &pos)
             QString mssv = ui->tableWidget->item(row, 0)->text();
             handleXoaSv(mssv);
             ui->tableWidget->removeRow(row);
+            ui->lcdSoLuongSinhVien->display(ui->tableWidget->rowCount());
             ui->comboBoxLopTb->clear();
             QSet<QString> set = getLops(ui->tableWidget);
-            for(auto x : set){
+            QStringList sortedList = QStringList(set.begin(), set.end());
+            sortedList.sort(Qt::CaseInsensitive);  // không phân biệt hoa thường (nếu cần)
+
+            for (const QString &x : sortedList) {
                 ui->comboBoxLopTb->addItem(x);
             }
         }
@@ -1556,12 +1734,16 @@ void MainWindow::on_saveBtn_clicked()
         QMessageBox::critical(this, "Lỗi", "Vui lòng import trước khi lưu");
         return;
     }
+    if(ui->huyMaxBtn->isEnabled()) on_huyMinBtn_clicked();
+    if(ui->huyMaxBtn->isEnabled()) on_huyMaxBtn_clicked();
     saveTableToCSV(ui->tableWidget);
 }
 
 
 void MainWindow::on_clearBtn_clicked()
 {
+    bool reply = showYesNoMessageBox(this,"Xác nhận", "Nếu chưa lưu dữ liệu, các thay đổi của bạn có thể mất. Bạn chắc chắn clear ?");
+    if(!reply) return;
     switch (selectedIndex){
     case 1:
         ds_mang.clear();
@@ -1582,13 +1764,19 @@ void MainWindow::on_clearBtn_clicked()
     }
     ui->clearBtn->setEnabled(false);
     mssvSet.clear();
+    searchMode = -1;
     this->isImport = false;
     this->selectedIndex = 0;
+    ui->lableAverageView->setText("");
+    ui->comboBoxLopTb->clear();
+    ui->SoLuongView->setText("");
     ui->methodBox->setCurrentIndex(0);
     ui->methodBox->setEnabled(true);
     ui->downloadBtn->setEnabled(true);
+    ui->timeSearchView->setText("");
+    ui->timeSortView->setText("");
+    ui->lcdSoLuongSinhVien->display(0);
+    ui->statusBtn->setText("✖ Not import");
+    ui->statusBtn->setStyleSheet("QPushButton { color: white; background-color: red; border-radius: 8px; padding: 6px; font: bold 14px; }");
 }
-
-
-
 

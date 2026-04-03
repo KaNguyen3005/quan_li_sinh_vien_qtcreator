@@ -9,6 +9,7 @@ release/mang.o
 release/sinhvien.o
 release/updateui.o
 release/validate.o
+release/qrc_resources.o
 release/moc_addui.o
 release/moc_mainwindow.o
 release/moc_updateui.o

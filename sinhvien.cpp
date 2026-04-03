@@ -16,7 +16,7 @@ void SinhVien::in_thong_tin() {
     qDebug() << "MSSV:" << mssv;
     qDebug() << "Họ"  << ho;
     qDebug() << "Tên:" << ten;
-    qDebug() << "Lớp"  << ho;
+    qDebug() << "Lớp"  << lop;
     qDebug() << "Điểm:" << diem;
 }
 

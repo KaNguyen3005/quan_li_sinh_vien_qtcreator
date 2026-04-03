@@ -12,6 +12,7 @@ public:
 
     bool isValidString(QString &str) ;
     QString deleteMiddleSpace(QString &str);
+    QString capitalizeWords(const QString& input);
 
 };
 

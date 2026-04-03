@@ -14,6 +14,7 @@
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
+#include <QtWidgets/QLCDNumber>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMainWindow>
@@ -63,6 +64,8 @@ public:
     QHBoxLayout *horizontalLayout_3;
     QLabel *lableAverage;
     QLabel *lableAverageView;
+    QLabel *soLuongLable;
+    QLabel *SoLuongView;
     QWidget *horizontalLayoutWidget_8;
     QHBoxLayout *horizontalLayout_5;
     QLabel *labelSort;
@@ -88,10 +91,12 @@ public:
     QLabel *labelSort_2;
     QComboBox *comboBoxStandarSort;
     QComboBox *comboBoxLopTb;
-    QWidget *widget;
+    QWidget *layoutWidget;
     QHBoxLayout *horizontalLayout_10;
     QPushButton *addBtn;
     QPushButton *saveBtn;
+    QLCDNumber *lcdSoLuongSinhVien;
+    QLabel *label_3;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -245,7 +250,7 @@ public:
         caculateBtn->setGeometry(QRect(780, 390, 81, 29));
         horizontalLayoutWidget_6 = new QWidget(centralwidget);
         horizontalLayoutWidget_6->setObjectName("horizontalLayoutWidget_6");
-        horizontalLayoutWidget_6->setGeometry(QRect(780, 360, 189, 31));
+        horizontalLayoutWidget_6->setGeometry(QRect(780, 360, 275, 31));
         horizontalLayout_3 = new QHBoxLayout(horizontalLayoutWidget_6);
         horizontalLayout_3->setObjectName("horizontalLayout_3");
         horizontalLayout_3->setContentsMargins(0, 0, 0, 0);
@@ -258,6 +263,16 @@ public:
         lableAverageView->setObjectName("lableAverageView");
 
         horizontalLayout_3->addWidget(lableAverageView);
+
+        soLuongLable = new QLabel(horizontalLayoutWidget_6);
+        soLuongLable->setObjectName("soLuongLable");
+
+        horizontalLayout_3->addWidget(soLuongLable);
+
+        SoLuongView = new QLabel(horizontalLayoutWidget_6);
+        SoLuongView->setObjectName("SoLuongView");
+
+        horizontalLayout_3->addWidget(SoLuongView);
 
         horizontalLayoutWidget_8 = new QWidget(centralwidget);
         horizontalLayoutWidget_8->setObjectName("horizontalLayoutWidget_8");
@@ -376,23 +391,29 @@ public:
 
         comboBoxLopTb = new QComboBox(centralwidget);
         comboBoxLopTb->setObjectName("comboBoxLopTb");
-        comboBoxLopTb->setGeometry(QRect(980, 360, 111, 28));
-        widget = new QWidget(centralwidget);
-        widget->setObjectName("widget");
-        widget->setGeometry(QRect(440, 530, 331, 31));
-        horizontalLayout_10 = new QHBoxLayout(widget);
+        comboBoxLopTb->setGeometry(QRect(1110, 360, 111, 28));
+        layoutWidget = new QWidget(centralwidget);
+        layoutWidget->setObjectName("layoutWidget");
+        layoutWidget->setGeometry(QRect(440, 530, 331, 31));
+        horizontalLayout_10 = new QHBoxLayout(layoutWidget);
         horizontalLayout_10->setObjectName("horizontalLayout_10");
         horizontalLayout_10->setContentsMargins(0, 0, 0, 0);
-        addBtn = new QPushButton(widget);
+        addBtn = new QPushButton(layoutWidget);
         addBtn->setObjectName("addBtn");
 
         horizontalLayout_10->addWidget(addBtn);
 
-        saveBtn = new QPushButton(widget);
+        saveBtn = new QPushButton(layoutWidget);
         saveBtn->setObjectName("saveBtn");
 
         horizontalLayout_10->addWidget(saveBtn);
 
+        lcdSoLuongSinhVien = new QLCDNumber(centralwidget);
+        lcdSoLuongSinhVien->setObjectName("lcdSoLuongSinhVien");
+        lcdSoLuongSinhVien->setGeometry(QRect(780, 90, 64, 23));
+        label_3 = new QLabel(centralwidget);
+        label_3->setObjectName("label_3");
+        label_3->setGeometry(QRect(940, 40, 63, 20));
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
@@ -442,6 +463,8 @@ public:
         caculateBtn->setText(QCoreApplication::translate("MainWindow", "T\303\255nh", nullptr));
         lableAverage->setText(QCoreApplication::translate("MainWindow", "\304\220i\341\273\203m trung b\303\254nh :", nullptr));
         lableAverageView->setText(QString());
+        soLuongLable->setText(QCoreApplication::translate("MainWindow", "S\341\273\221 l\306\260\341\273\243ng :", nullptr));
+        SoLuongView->setText(QString());
         labelSort->setText(QCoreApplication::translate("MainWindow", "S\341\272\257p x\341\272\277p b\341\272\261ng", nullptr));
         comboBoxSort->setItemText(0, QCoreApplication::translate("MainWindow", "--- Select ---", nullptr));
         comboBoxSort->setItemText(1, QCoreApplication::translate("MainWindow", "Bubble sort", nullptr));
@@ -473,6 +496,7 @@ public:
 
         addBtn->setText(QCoreApplication::translate("MainWindow", "Th\303\252m sinh vi\303\252n", nullptr));
         saveBtn->setText(QCoreApplication::translate("MainWindow", "L\306\260u", nullptr));
+        label_3->setText(QString());
     } // retranslateUi
 
 };

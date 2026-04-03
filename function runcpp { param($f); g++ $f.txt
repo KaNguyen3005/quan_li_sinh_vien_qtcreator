@@ -1,0 +1,1 @@
+function runcpp { param($f); g++ $f.cpp -o $f; .\$f }

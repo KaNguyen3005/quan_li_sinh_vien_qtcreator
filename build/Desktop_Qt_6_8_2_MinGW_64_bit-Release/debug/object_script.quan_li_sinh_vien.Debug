@@ -9,6 +9,7 @@ debug/mang.o
 debug/sinhvien.o
 debug/updateui.o
 debug/validate.o
+debug/qrc_resources.o
 debug/moc_addui.o
 debug/moc_mainwindow.o
 debug/moc_updateui.o

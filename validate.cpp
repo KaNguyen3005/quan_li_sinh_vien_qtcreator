@@ -32,3 +32,17 @@ QString validate::deleteMiddleSpace(QString &str){
     str.replace(QRegularExpression("\\s+"), " ");
     return str;
 };
+
+QString validate::capitalizeWords(const QString& input) {
+    QStringList words = input.split(' ', Qt::SkipEmptyParts);
+    for (int i = 0; i < words.size(); ++i) {
+        if (!words[i].isEmpty()) {
+            words[i][0] = words[i][0].toUpper();
+            for (int j = 1; j < words[i].size(); ++j) {
+                words[i][j] = words[i][j].toLower();
+            }
+        }
+    }
+    return words.join(' ');
+}
+
